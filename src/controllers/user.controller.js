@@ -1,3 +1,5 @@
+import bcrypt from "bcryptjs";
+import { RefreshToken } from "../models/refreshToken.model.js";
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -6,6 +8,14 @@ import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 import { createAccessToken, createRefreshToken } from "../utils/tokenService.js";
 
 
+// API flow
+// User sends form →
+// Backend →
+// User created →
+// Access token generated →
+// Refresh token stored in DB →
+// Cookies set →
+// User logged in ✅
 export const createNewUser = asyncHandler(async (req, res) => {
     const { email, password, confirmPassword, fullName, dob, mobileNumber, gender } = req.body;
 
@@ -33,7 +43,6 @@ export const createNewUser = asyncHandler(async (req, res) => {
         }
         profilePictureLiveURL = profilePicture.url;
     }
-
 
     const user = await User.create(
         {
@@ -91,6 +100,76 @@ export const createNewUser = asyncHandler(async (req, res) => {
                 },
                 "User registered successfully")
         )
+})
 
+// API Flow
+// Client sends request → Reads refresh_token + id → DB verify → bcrypt compare → New access token → Cookie updated ✅
+export const refreshAccessToken = asyncHandler(async (req, res) => {
+    try {
+        const refreshPlain = req.cookies['refresh_token'];
+        const refreshId = req.cookies['refresh_token_id'];
 
+        const isProd = process.env.NODE_ENV === "production";
+        const COOKIE_DOMAIN = isProd ? process.env.COOKIE_DOMAIN : undefined;
+
+        if (!refreshPlain || !refreshId) {
+            return res
+                .status(401)
+                .json(
+                    { error: 'No refresh token' }
+                );
+        }
+
+        const doc = await RefreshToken.findById(refreshId);
+        if (!doc) return res
+            .status(401)
+            .json(
+                { error: 'Invalid refresh token id' }
+            );
+
+        if (new Date() > doc.expiresAt) {
+            await RefreshToken.findByIdAndDelete(refreshId);
+            return res.status(401).json({ error: 'Refresh token expired' });
+        }
+
+        const ok = await bcrypt.compare(refreshPlain, doc.tokenHash);
+        if (!ok) {
+            return res
+                .status(401)
+                .json(
+                    {
+                        error: 'Refresh token mismatch'
+                    }
+                );
+        }
+
+        const user = await User.findById(doc.user);
+
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        const newAccessToken = createAccessToken(user);
+
+        const cookieOptions = {
+            httpOnly: true,
+            secure: isProd,
+            sameSite: isProd ? 'None' : 'Lax',
+            path: '/',
+            domain: COOKIE_DOMAIN,
+        };
+
+        res.cookie('access_token', newAccessToken, { ...cookieOptions, maxAge: 2 * 60 * 60 * 1000 });
+
+        return res
+            .json(
+                {
+                    ok: true,
+                    message: "Access token refreshed"
+                }
+            );
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Server error' });
+    }
 })
