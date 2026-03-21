@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import mongoose, { Schema } from "mongoose";
 
 const userSchema = new Schema(
@@ -22,9 +23,6 @@ const userSchema = new Schema(
             type: String,
             enum: ["email", "google"],
             required: true
-        },
-        refreshToken: {
-            type: String
         },
         profilePicture: {
             type: String,
@@ -66,5 +64,16 @@ const userSchema = new Schema(
         timestamps: true
     }
 )
+
+
+//it is a middleware , it encrypts the password just before saving it in db
+userSchema.pre("save", async function (next) {
+    if (!this.isModified("password")) return next()
+
+    //to hide the real password
+    this.password = await bcrypt.hash(this.password, 10)
+    next()
+})
+
 
 export const User = mongoose.model("User", userSchema)

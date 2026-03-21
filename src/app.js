@@ -1,8 +1,8 @@
-import passport from "passport";
+// import passport from "passport";
 import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser";
-import './config/passport.js';
+// import './config/passport.js';
 
 const app = express();
 
@@ -25,6 +25,11 @@ app.use(express.static("public"))
 
 app.use(cookieParser())
 
-app.use(passport.initialize());
+// app.use(passport.initialize());
+
+
+import userRouter from "./routes/user.routes.js";
+
+app.use("/api/user", userRouter)
 
 export default app
