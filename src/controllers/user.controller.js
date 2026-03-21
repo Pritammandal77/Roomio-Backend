@@ -1,7 +1,8 @@
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import {asyncHandler } from "../utils/AsyncHandler.js"
+import { asyncHandler } from "../utils/AsyncHandler.js"
+import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 import { createAccessToken, createRefreshToken } from "../utils/tokenService.js";
 
 
@@ -22,6 +23,18 @@ export const createNewUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Passwords do not match");
     }
 
+    const profilePictureLocalPath = req.files?.profilePicture?.[0]?.path;
+
+    let profilePictureLiveURL;
+    if (profilePictureLocalPath) {
+        const profilePicture = await uploadOnCloudinary(profilePictureLocalPath);
+        if (!profilePicture?.url) {
+            throw new ApiError(400, "Error while uploading profile picture");
+        }
+        profilePictureLiveURL = profilePicture.url;
+    }
+
+
     const user = await User.create(
         {
             email,
@@ -30,6 +43,7 @@ export const createNewUser = asyncHandler(async (req, res) => {
             dob,
             mobileNumber,
             gender,
+            profilePicture: profilePictureLiveURL,
             authProvider: "email"
         }
     )
@@ -69,7 +83,7 @@ export const createNewUser = asyncHandler(async (req, res) => {
     return res
         .status(201)
         .json(
-            new ApiResponse(200,
+            new ApiResponse(201,
                 {
                     _id: user._id,
                     email: user.email,
