@@ -28,7 +28,7 @@ const userSchema = new Schema(
         },
         profilePicture: {
             type: String,
-            default: ""
+            default: "https://cdn-icons-png.flaticon.com/512/149/149071.png"
         },
         fullName: {
             type: String,
@@ -36,12 +36,23 @@ const userSchema = new Schema(
             trim: true,
             maxlength: 30
         },
-        age: {
-            type: Number
+        dob: {
+            type: Date,
+            required: true,
+            validate: {
+                validator: function (value) {
+                    return value < new Date();
+                },
+                message: "DOB must be in the past"
+            }
         },
         gender: {
             type: String,
             enum: ["male", "female", "others"],
+        },
+        mobileNumber: {
+            type: String,
+            unique: true
         },
         instagramLink: {
             type: String
