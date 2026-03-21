@@ -67,13 +67,15 @@ const userSchema = new Schema(
 
 
 //it is a middleware , it encrypts the password just before saving it in db
-userSchema.pre("save", async function (next) {
-    if (!this.isModified("password")) return next()
+userSchema.pre("save", async function () {
+    if (!this.isModified("password")) return;
 
-    //to hide the real password
-    this.password = await bcrypt.hash(this.password, 10)
-    next()
-})
+    this.password = await bcrypt.hash(this.password, 10);
+});
+
+userSchema.methods.isPasswordCorrect = async function (password) {
+    return await bcrypt.compare(password, this.password)
+}
 
 
 export const User = mongoose.model("User", userSchema)
