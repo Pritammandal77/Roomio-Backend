@@ -16,7 +16,7 @@ import jwt from "jsonwebtoken";
 // Access token generated →
 // Refresh token stored in DB →
 // Cookies set →
-// User logged in ✅
+// User logged in 
 export const createNewUser = asyncHandler(async (req, res) => {
     const { email, password, confirmPassword, fullName, dob, mobileNumber, gender } = req.body;
 
@@ -186,4 +186,87 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
         console.error(err);
         return res.status(500).json({ error: 'Server error' });
     }
+})
+
+
+export const loginUser = asyncHandler(async (req, res) => {
+    const { email, password } = req.body
+
+    if (!email || !password) {
+        throw new ApiError(400, "Email & password is required to login")
+    }
+
+    const user = await User.findOne({ email })
+
+    if (!user) {
+        throw new ApiError(401, "Invalid email or password")
+    }
+
+    //we are using the isPasswordCorrect method define in the user.model.js
+    const isPasswordValid = await user.isPasswordCorrect(password)
+
+    if (!isPasswordValid) {
+        throw new ApiError(401, "Invalid password")
+    }
+
+    const accessToken = createAccessToken(user);
+
+    const { token: refreshToken, id: refreshId } = await createRefreshToken({
+        userId: user._id,
+        ip: req.ip,
+        userAgent: req.headers["user-agent"],
+    });
+
+    const isProd = process.env.NODE_ENV === "production";
+
+    const cookieOptions = {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? "None" : "Lax",
+        path: "/",
+    };
+
+    res.cookie("access_token", accessToken, {
+        ...cookieOptions,
+        maxAge: 2 * 60 * 60 * 1000,
+    });
+
+    res.cookie("refresh_token", refreshToken, {
+        ...cookieOptions,
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
+    res.cookie("refresh_token_id", refreshId.toString(), {
+        ...cookieOptions,
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
+    const loggedInUserData = await User.findById(user._id).select("-password")
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, loggedInUserData, "User loggedIn successfully")
+        )
+})
+
+export const logOutUser = asyncHandler(async (req, res) => {
+    const isProd = process.env.NODE_ENV === "production";
+
+    const cookieOptions = {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? "None" : "Lax",
+        path: "/",
+    };
+
+    await RefreshToken.findByIdAndDelete(req.cookies.refresh_token_id);
+
+    return res
+        .status(200)
+        .clearCookie("access_token", cookieOptions)
+        .clearCookie("refresh_token", cookieOptions)
+        .clearCookie("refresh_token_id", cookieOptions)
+        .json(new ApiResponse(200, {}, "User logged Out successfully"))
+
 })
