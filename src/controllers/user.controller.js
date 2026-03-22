@@ -6,6 +6,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/AsyncHandler.js"
 import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 import { createAccessToken, createRefreshToken } from "../utils/tokenService.js";
+import jwt from "jsonwebtoken";
 
 
 // API flow
@@ -101,6 +102,19 @@ export const createNewUser = asyncHandler(async (req, res) => {
                 "User registered successfully")
         )
 })
+
+
+export const getCurrentUser = asyncHandler(async (req, res) => {
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                req.user,
+                "current user fetched successfully"
+            ))
+})
+
 
 // API Flow
 // Client sends request → Reads refresh_token + id → DB verify → bcrypt compare → New access token → Cookie updated ✅
