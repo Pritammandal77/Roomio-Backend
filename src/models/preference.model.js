@@ -46,10 +46,10 @@ const preferenceSchema = new Schema(
             pets: {
                 type: Boolean,
             },
-            gender: {
-                type: String,
-                enum: ["male", "female", "others"]
-            }
+        },
+        gender: {
+            type: String,
+            enum: ["male", "female", "others"]
         },
         workStyle: {
             type: String,
