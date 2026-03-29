@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 
-
+ 
 const preferenceSchema = new Schema(
     {
         user: {
@@ -18,7 +18,7 @@ const preferenceSchema = new Schema(
                 type: Number,
                 required: true
             }
-        },
+        }, 
         occupation: {
             type: String,
             required: true

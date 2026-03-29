@@ -29,7 +29,10 @@ app.use(cookieParser())
 
 
 import userRouter from "./routes/user.routes.js";
+import preferenceRouter from "./routes/preference.routes.js";
 
 app.use("/api/user", userRouter)
+
+app.use("/api/preference", preferenceRouter)
 
 export default app
