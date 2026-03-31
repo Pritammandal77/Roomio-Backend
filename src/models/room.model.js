@@ -1,61 +1,71 @@
 import mongoose from "mongoose";
 
-const roomSchema = new mongoose.Schema(
-    {
-        postedBy: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
+const roomSchema = new mongoose.Schema({
+    postedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
+    rent: {
+        type: Number,
+        required: true
+    },
+    pictures: [
+        {
+            url: {
+                type: String,
+                required: true
+            },
+            public_id: {
+                type: String,
+                required: true
+            }
+        }
+    ],
+    location: {
+        type: {
+            type: String,
+            enum: ["Point"],
+            default: "Point"
+        },
+        coordinates: {
+            type: [Number], // [lng, lat]
             required: true
         },
-        rent: {
+        city: String,
+        area: String
+    },
+    preferences: {
+        smoking: Boolean,
+        drinking: Boolean,
+        sleepSchedule: {
+            type: String,
+            enum: ["early", "late"]
+        },
+        cleanliness: {
             type: Number,
-            required: true
+            min: 1,
+            max: 5
         },
-        location: {
-            city: String,
-            area: String,
-            // coordinates: {
-            //     lat: Number,
-            //     lng: Number
-            // }
+        foodPreference: {
+            type: String,
+            enum: ["veg", "non-veg"]
         },
-        preferences: {
-            smoking: {
-                type: Boolean
-            },
-            drinking: {
-                type: Boolean
-            },
-            sleepSchedule: {
-                type: String,
-                enum: ["early", "late"]
-            },
-            cleanliness: {
-                type: Number,
-                min: 1,
-                max: 5
-            },
-            foodPreference: {
-                type: String,
-                enum: ["veg", "non-veg"]
-            },
-            pets: {
-                type: Boolean
-            },
-            preferredGender: {
-                type: String,
-                enum: ["male", "female", "others"]
-            },
-            workStyle: {
-                type: String,
-                enum: ["WFO", "WFH", "Hybrid"]
-            },
+        pets: Boolean,
+        preferredGender: {
+            type: String,
+            enum: ["male", "female", "others"]
+        },
+        workStyle: {
+            type: String,
+            enum: ["WFO", "WFH", "Hybrid"]
         }
     }
-    ,
-    {
-        timestamps: true
-    }
+}, { timestamps: true });
+
+// VERY IMPORTANT
+roomSchema.index(
+    { location: "2dsphere" }
 );
 
-export const Room = mongoose.model("Room", roomSchema)
+export const Room = mongoose.model("Room", roomSchema);
