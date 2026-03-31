@@ -31,19 +31,27 @@ export const listRoom = asyncHandler(async (req, res) => {
         !coordinates ||
         !city ||
         !area ||
-        smoking === undefined ||
-        drinking === undefined ||
         !sleepSchedule ||
         cleanliness === undefined ||
         !foodPreference ||
-        pets === undefined ||
         !preferredGender ||
         !workStyle
     ) {
         throw new ApiError(400, "All fields are required");
     }
 
-    if (!Array.isArray(coordinates) || coordinates.length !== 2) {
+
+    let coordinatesParsed;
+    try {
+        coordinatesParsed = JSON.parse(coordinates);
+    } catch (err) {
+        throw new ApiError(400, "Invalid coordinates format");
+    }
+
+    if (
+        !Array.isArray(coordinatesParsed) ||
+        coordinatesParsed.length !== 2
+    ) {
         throw new ApiError(400, "Invalid coordinates format");
     }
 
@@ -59,12 +67,27 @@ export const listRoom = asyncHandler(async (req, res) => {
 
     let pictures = [];
 
+    // for (let pic of picturesLocalPaths) {
+    //     const uploaded = await uploadOnCloudinary(pic.path);
+
+    //     if (uploaded?.secure_url && uploaded?.public_id) {
+    //         pictures.push({
+    //             url: uploaded.secure_url,
+    //             public_id: uploaded.public_id
+    //         });
+    //     }
+    // }
+
     for (let pic of picturesLocalPaths) {
+        console.log("Uploading:", pic.path);
+
         const uploaded = await uploadOnCloudinary(pic.path);
 
-        if (uploaded?.secure_url && uploaded?.public_id) {
+        console.log("Cloudinary Response:", uploaded); // 👈 ADD THIS
+
+        if (uploaded && uploaded.public_id) {
             pictures.push({
-                url: uploaded.secure_url,
+                url: uploaded.secure_url || uploaded.url, // ✅ fallback
                 public_id: uploaded.public_id
             });
         }
@@ -76,7 +99,7 @@ export const listRoom = asyncHandler(async (req, res) => {
         pictures,
         location: {
             type: "Point",
-            coordinates,
+            coordinates: coordinatesParsed,
             city,
             area
         },

@@ -4,9 +4,9 @@ import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/AsyncHandler.js"
-import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 import { createAccessToken, createRefreshToken } from "../utils/tokenService.js";
 import jwt from "jsonwebtoken";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 
 // API flow

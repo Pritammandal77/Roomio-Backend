@@ -36,8 +36,14 @@ const roomSchema = new mongoose.Schema({
         area: String
     },
     preferences: {
-        smoking: Boolean,
-        drinking: Boolean,
+        smoking: {
+            type: Boolean,
+            default: false
+        },
+        drinking: {
+            type: Boolean,
+            default: false
+        },
         sleepSchedule: {
             type: String,
             enum: ["early", "late"]
@@ -51,7 +57,10 @@ const roomSchema = new mongoose.Schema({
             type: String,
             enum: ["veg", "non-veg"]
         },
-        pets: Boolean,
+        pets: {
+            type: Boolean,
+            default: false
+        },
         preferredGender: {
             type: String,
             enum: ["male", "female", "others"]
