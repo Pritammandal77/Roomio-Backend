@@ -125,3 +125,21 @@ export const listRoom = asyncHandler(async (req, res) => {
         new ApiResponse(201, listing, "property listed successfully")
     );
 });
+
+
+
+export const getAllListings = asyncHandler(async (req, res) => {
+    const allListings = await Room.find({})
+    .sort({ createdAt: -1 })
+    .populate({
+        path : "postedBy",
+        select : "email profilePicture fullName dob gender"
+    })
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, allListings, "Listings fetched succesfully")
+        )
+})
+
