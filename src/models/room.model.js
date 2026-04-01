@@ -10,6 +10,10 @@ const roomSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    description: {
+        type: String,
+        required: true,
+    },
     pictures: [
         {
             url: {
@@ -69,10 +73,35 @@ const roomSchema = new mongoose.Schema({
             type: String,
             enum: ["WFO", "WFH", "Hybrid"]
         }
+    },
+    amenities: {
+        roomType: {
+            type: String,
+            enum: ["1 BHK", "2 BHK", "3 BHK", "Single room", "PG", "other"],
+        },
+        AC: {
+            type: Boolean,
+            default: false
+        },
+        refrigerator: {
+            type: Boolean,
+            default: false
+        },
+        parking: {
+            type: Boolean,
+            default: false
+        },
+        furnishedLevel: {
+            type: String,
+            enum: ["semi furnished", "full furnished", "non furnished"]
+        },
+        isPersonalRoomAvailable: {
+            type: Boolean,
+            default: false
+        }
     }
 }, { timestamps: true });
 
-// VERY IMPORTANT
 roomSchema.index(
     { location: "2dsphere" }
 );

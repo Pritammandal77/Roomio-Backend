@@ -7,6 +7,7 @@ import { Room } from "../models/room.model.js";
 export const listRoom = asyncHandler(async (req, res) => {
     const {
         rent,
+        description,
         coordinates,
         city,
         area,
@@ -18,6 +19,12 @@ export const listRoom = asyncHandler(async (req, res) => {
         pets,
         preferredGender,
         workStyle,
+        roomType,
+        AC,
+        refrigerator,
+        parking,
+        furnishedLevel,
+        isPersonalRoomAvailable
     } = req.body;
 
     const user = req.user?._id;
@@ -28,6 +35,7 @@ export const listRoom = asyncHandler(async (req, res) => {
 
     if (
         !rent ||
+        !description ||
         !coordinates ||
         !city ||
         !area ||
@@ -67,27 +75,16 @@ export const listRoom = asyncHandler(async (req, res) => {
 
     let pictures = [];
 
-    // for (let pic of picturesLocalPaths) {
-    //     const uploaded = await uploadOnCloudinary(pic.path);
-
-    //     if (uploaded?.secure_url && uploaded?.public_id) {
-    //         pictures.push({
-    //             url: uploaded.secure_url,
-    //             public_id: uploaded.public_id
-    //         });
-    //     }
-    // }
-
     for (let pic of picturesLocalPaths) {
         console.log("Uploading:", pic.path);
 
         const uploaded = await uploadOnCloudinary(pic.path);
 
-        console.log("Cloudinary Response:", uploaded); // 👈 ADD THIS
+        console.log("Cloudinary Response:", uploaded);
 
         if (uploaded && uploaded.public_id) {
             pictures.push({
-                url: uploaded.secure_url || uploaded.url, // ✅ fallback
+                url: uploaded.secure_url || uploaded.url,
                 public_id: uploaded.public_id
             });
         }
@@ -96,6 +93,7 @@ export const listRoom = asyncHandler(async (req, res) => {
     const listing = await Room.create({
         postedBy: user,
         rent,
+        description,
         pictures,
         location: {
             type: "Point",
@@ -112,6 +110,14 @@ export const listRoom = asyncHandler(async (req, res) => {
             pets,
             preferredGender,
             workStyle
+        },
+        amenities: {
+            roomType,
+            AC: AC === "true",
+            refrigerator: refrigerator === "true",
+            parking: parking === "true",
+            furnishedLevel,
+            isPersonalRoomAvailable: isPersonalRoomAvailable === "true"
         }
     });
 
