@@ -130,11 +130,11 @@ export const listRoom = asyncHandler(async (req, res) => {
 
 export const getAllListings = asyncHandler(async (req, res) => {
     const allListings = await Room.find({})
-    .sort({ createdAt: -1 })
-    .populate({
-        path : "postedBy",
-        select : "email profilePicture fullName dob gender"
-    })
+        .sort({ createdAt: -1 })
+        .populate({
+            path: "postedBy",
+            select: "email profilePicture fullName dob gender"
+        })
 
     return res
         .status(200)
@@ -143,3 +143,22 @@ export const getAllListings = asyncHandler(async (req, res) => {
         )
 })
 
+export const getListingsByID = asyncHandler(async (req, res) => {
+    const roomId = req.params.id
+
+    if (!roomId) {
+        throw new ApiError(404, "Room not found")
+    }
+
+    const listing = await Room.findById({ _id: roomId })
+        .populate({
+            path: "postedBy",
+            select: "email profilePicture fullName dob gender"
+        })
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, listing, "Property details fetched successfuly")
+        )
+})
