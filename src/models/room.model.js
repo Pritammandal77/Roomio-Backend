@@ -69,6 +69,10 @@ const roomSchema = new mongoose.Schema({
             type: String,
             enum: ["male", "female", "others"]
         },
+        occupation: {
+            type: String,
+            enum: ["student", "working professional", "others"]
+        },
         workStyle: {
             type: String,
             enum: ["WFO", "WFH", "Hybrid"]

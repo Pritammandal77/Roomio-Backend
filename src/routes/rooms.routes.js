@@ -12,7 +12,7 @@ roomRouter.route("/list-new-room")
         listRoom
     )
 
-roomRouter.route("/all-listings").get(getAllListings)
+roomRouter.route("/all-listings").get(verifyJWT, getAllListings)
 
 roomRouter.route("/listing/:id").get(getListingsByID)
 export default roomRouter

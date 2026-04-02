@@ -3,6 +3,9 @@ import { asyncHandler } from "../utils/AsyncHandler.js";
 import { ApiError } from '../utils/ApiError.js'
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { Room } from "../models/room.model.js";
+import { User } from "../models/user.model.js";
+import { calculateMatch } from "../utils/MatchPreference.js";
+import { Preference } from "../models/preference.model.js";
 
 export const listRoom = asyncHandler(async (req, res) => {
     const {
@@ -18,6 +21,7 @@ export const listRoom = asyncHandler(async (req, res) => {
         foodPreference,
         pets,
         preferredGender,
+        occupation,
         workStyle,
         roomType,
         AC,
@@ -43,7 +47,8 @@ export const listRoom = asyncHandler(async (req, res) => {
         cleanliness === undefined ||
         !foodPreference ||
         !preferredGender ||
-        !workStyle
+        !workStyle ||
+        !occupation
     ) {
         throw new ApiError(400, "All fields are required");
     }
@@ -109,6 +114,7 @@ export const listRoom = asyncHandler(async (req, res) => {
             foodPreference,
             pets,
             preferredGender,
+            occupation,
             workStyle
         },
         amenities: {
@@ -129,17 +135,43 @@ export const listRoom = asyncHandler(async (req, res) => {
 
 
 export const getAllListings = asyncHandler(async (req, res) => {
-    const allListings = await Room.find({})
+    const userId = req.user?._id
+
+    const rooms = await Room.find({})
         .sort({ createdAt: -1 })
         .populate({
             path: "postedBy",
             select: "email profilePicture fullName dob gender"
         })
 
+    let finalRoomsData = rooms;
+
+    if (userId) {
+        const user = await User.findById(userId);
+        const preference = await Preference.findOne({ user: userId });
+
+        // Calculate match %
+        const matchedRooms = rooms.map((room) => {
+            const matchPercentage = calculateMatch(user, preference, room);
+
+            return {
+                ...room.toObject(),
+                matchPercentage
+            };
+        });
+
+        // ✅ Sort by best match
+        matchedRooms.sort((a, b) => b.matchPercentage - a.matchPercentage);
+
+        finalRoomsData = matchedRooms;
+        console.log(finalRoomsData)
+    }
+
+
     return res
         .status(200)
         .json(
-            new ApiResponse(200, allListings, "Listings fetched succesfully")
+            new ApiResponse(200, finalRoomsData, "Listings fetched succesfully")
         )
 })
 
