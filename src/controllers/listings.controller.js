@@ -133,7 +133,6 @@ export const listRoom = asyncHandler(async (req, res) => {
 });
 
 
-
 export const getAllListings = asyncHandler(async (req, res) => {
     const userId = req.user?._id
 
@@ -160,14 +159,11 @@ export const getAllListings = asyncHandler(async (req, res) => {
             };
         });
 
-        // ✅ Sort by best match
         matchedRooms.sort((a, b) => b.matchPercentage - a.matchPercentage);
 
         finalRoomsData = matchedRooms;
-        console.log(finalRoomsData)
     }
-
-
+    console.log("room data", finalRoomsData)
     return res
         .status(200)
         .json(

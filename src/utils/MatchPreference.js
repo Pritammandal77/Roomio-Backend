@@ -14,16 +14,15 @@ export const calculateMatch = (user, preference, room) => {
         sleepSchedule: 5
     };
 
-    // ✅ Gender
+    // Gender
     if (room.preferences?.preferredGender && user.gender) {
         totalWeight += weights.gender;
-
         if (room.preferences.preferredGender === user.gender) {
             score += weights.gender;
         }
     }
 
-    // ✅ Occupation
+    // Occupation
     if (preference?.occupation && room.preferences?.occupation) {
         totalWeight += weights.occupation;
 
@@ -32,7 +31,7 @@ export const calculateMatch = (user, preference, room) => {
         }
     }
 
-    // ✅ Lifestyle fields
+    // Lifestyle fields
     const lifestyleFields = [
         "smoking",
         "drinking",
@@ -56,7 +55,7 @@ export const calculateMatch = (user, preference, room) => {
         }
     });
 
-    // ✅ Cleanliness (range based)
+    // Cleanliness (range based)
     if (
         preference?.lifestyle?.cleanliness !== undefined &&
         room.preferences?.cleanliness !== undefined
@@ -73,7 +72,7 @@ export const calculateMatch = (user, preference, room) => {
         else if (diff === 2) score += weights.cleanliness * 0.4;
     }
 
-    // ✅ Rent (range based)
+    // Rent (range based)
     if (preference?.budget && room.rent) {
         totalWeight += weights.rent;
 
