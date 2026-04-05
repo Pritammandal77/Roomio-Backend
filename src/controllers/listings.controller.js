@@ -190,3 +190,103 @@ export const getListingsByID = asyncHandler(async (req, res) => {
             new ApiResponse(200, listing, "Property details fetched successfuly")
         )
 })
+
+export const filterRooms = asyncHandler(async (req, res) => {
+    const {
+        minRent,
+        maxRent,
+        city,
+        area,
+
+        // preferences
+        smoking,
+        drinking,
+        sleepSchedule,
+        cleanliness,
+        foodPreference,
+        pets,
+        preferredGender,
+        occupation,
+        workStyle,
+
+        // amenities
+        roomType,
+        AC,
+        refrigerator,
+        parking,
+        furnishedLevel,
+        isPersonalRoomAvailable,
+
+        // geo
+        lat,
+        lng,
+        radius
+    } = req.body;
+
+    let query = {};
+
+    // 💰 Rent
+    if (minRent || maxRent) {
+        query.rent = {};
+        if (minRent) query.rent.$gte = Number(minRent);
+        if (maxRent) query.rent.$lte = Number(maxRent);
+    }
+
+    // 📍 Location
+    if (city) query["location.city"] = city;
+    if (area) query["location.area"] = area;
+
+    // 🚬 Preferences
+    if (smoking !== undefined) query["preferences.smoking"] = smoking;
+    if (drinking !== undefined) query["preferences.drinking"] = drinking;
+    if (sleepSchedule) query["preferences.sleepSchedule"] = sleepSchedule;
+    if (cleanliness) query["preferences.cleanliness"] = Number(cleanliness);
+    if (foodPreference) query["preferences.foodPreference"] = foodPreference;
+    if (pets !== undefined) query["preferences.pets"] = pets;
+    if (preferredGender) query["preferences.preferredGender"] = preferredGender;
+    if (occupation) query["preferences.occupation"] = occupation;
+    if (workStyle) query["preferences.workStyle"] = workStyle;
+
+    // 🏠 Amenities
+    if (roomType && Array.isArray(roomType) && roomType.length > 0) {
+        query["amenities.roomType"] = { $in: roomType };
+    }
+
+    if (AC !== undefined) query["amenities.AC"] = AC;
+    if (refrigerator !== undefined) query["amenities.refrigerator"] = refrigerator;
+    if (parking !== undefined) query["amenities.parking"] = parking;
+
+    if (furnishedLevel) {
+        query["amenities.furnishedLevel"] = furnishedLevel;
+    }
+
+    if (isPersonalRoomAvailable !== undefined) {
+        query["amenities.isPersonalRoomAvailable"] = isPersonalRoomAvailable;
+    }
+
+    // 🌍 Geo
+    if (lat && lng && radius) {
+        query.location = {
+            $near: {
+                $geometry: {
+                    type: "Point",
+                    coordinates: [parseFloat(lng), parseFloat(lat)],
+                },
+                $maxDistance: radius * 1000
+            }
+        };
+    }
+
+    console.log("FILTER QUERY:", query);
+
+    const rooms = await Room.find(query)
+        .sort({ createdAt: -1 })
+        .populate({
+            path: "postedBy",
+            select: "fullName email profilePicture"
+        });
+
+    return res.status(200).json(
+        new ApiResponse(200, rooms, "Filtered rooms fetched successfully")
+    );
+});
