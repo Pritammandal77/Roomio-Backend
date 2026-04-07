@@ -89,3 +89,50 @@ export const getUserInterests = asyncHandler(async (req, res) => {
             new ApiResponse(200, { incoming, outgoing }, "Interests fetched successfully")
         );
 })
+
+
+
+export const updateStatus = asyncHandler(async (req, res) => {
+    const { updatedStatus, interestId } = req.body;
+
+    const user = req.user?._id;
+
+    if (!user) {
+        throw new ApiError(401, "User not logged in");
+    }
+
+    if (!interestId || !updatedStatus) {
+        throw new ApiError(400, "Interest ID and status are required");
+    }
+
+    // Validate status
+    const allowedStatus = ["accepted", "rejected"];
+    if (!allowedStatus.includes(updatedStatus)) {
+        throw new ApiError(400, "Invalid status value");
+    }
+
+    // Find interest
+    const interest = await Interest.findById(interestId);
+
+    if (!interest) {
+        throw new ApiError(404, "Interest not found");
+    }
+
+    // Only property owner can accept/reject
+    if (interest.propertyLister.toString() !== user.toString()) {
+        throw new ApiError(403, "You are not authorized to update this request");
+    }
+
+    // Prevent re-updating
+    if (interest.status !== "pending") {
+        throw new ApiError(400, "This request is already processed");
+    }
+
+    // Update status
+    interest.status = updatedStatus;
+    await interest.save();
+
+    return res.status(200).json(
+        new ApiResponse(200, interest, `Request ${updatedStatus}`)
+    );
+});
