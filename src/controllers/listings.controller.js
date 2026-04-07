@@ -81,11 +81,9 @@ export const listRoom = asyncHandler(async (req, res) => {
     let pictures = [];
 
     for (let pic of picturesLocalPaths) {
-        console.log("Uploading:", pic.path);
 
         const uploaded = await uploadOnCloudinary(pic.path);
 
-        console.log("Cloudinary Response:", uploaded);
 
         if (uploaded && uploaded.public_id) {
             pictures.push({
@@ -163,7 +161,6 @@ export const getAllListings = asyncHandler(async (req, res) => {
 
         finalRoomsData = matchedRooms;
     }
-    console.log("room data", finalRoomsData)
     return res
         .status(200)
         .json(
@@ -277,7 +274,6 @@ export const filterRooms = asyncHandler(async (req, res) => {
         };
     }
 
-    console.log("FILTER QUERY:", query);
 
     const rooms = await Room.find(query)
         .sort({ createdAt: -1 })

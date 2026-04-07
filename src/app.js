@@ -31,11 +31,14 @@ app.use(cookieParser())
 import userRouter from "./routes/user.routes.js";
 import preferenceRouter from "./routes/preference.routes.js";
 import roomRouter from "./routes/rooms.routes.js";
+import interestRouter from "./routes/interests.routes.js";
 
 app.use("/api/user", userRouter)
 
 app.use("/api/preference", preferenceRouter)
 
 app.use("/api/rooms", roomRouter)
+
+app.use("/api/interests", interestRouter)
 
 export default app

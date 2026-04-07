@@ -1,7 +1,7 @@
-import { Interest } from "../models/interested.model";
+import { Interest } from "../models/interested.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { asyncHandler } from "../utils/AsyncHandler";
+import { asyncHandler } from "../utils/AsyncHandler.js";
 
 
 export const createNewInterest = asyncHandler(async (req, res) => {
@@ -17,9 +17,9 @@ export const createNewInterest = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Property and lister are required");
     }
 
-    if (interestedUser.toString() === propertyLister) {
-        throw new ApiError(400, "You cannot show interest in your own property");
-    }
+    // if (interestedUser.toString() === propertyLister) {
+    //     throw new ApiError(400, "You cannot show interest in your own property");
+    // }
 
     try {
         const interest = await Interest.create({
@@ -49,8 +49,39 @@ export const getUserInterests = asyncHandler(async (req, res) => {
         throw new ApiError(401, "User not loggedIn")
     }
 
-    const incoming = await Interest.find({ propertyLister: user }).sort({ createdAt: -1 })
-    const outgoing = await Interest.find({ interestedUser: user }).sort({ createdAt: -1 })
+    const incoming = await Interest.find({ propertyLister: user })
+        .sort({ createdAt: -1 })
+        .populate([
+            {
+                path: "interestedUser",
+                select: "fullName email profilePicture"
+            },
+            {
+                path: "propertyLister",
+                select: "fullName email profilePicture"
+            },
+            {
+                path: "property",
+                select: "rent description"
+            }
+        ])
+
+    const outgoing = await Interest.find({ interestedUser: user })
+        .sort({ createdAt: -1 })
+        .populate([
+            {
+                path: "interestedUser",
+                select: "fullName email profilePicture"
+            },
+            {
+                path: "propertyLister",
+                select: "fullName email profilePicture"
+            },
+            {
+                path: "property",
+                select: "rent description"
+            }
+        ])
 
     return res
         .status(200)
