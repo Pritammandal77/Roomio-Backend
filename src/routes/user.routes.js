@@ -24,6 +24,6 @@ userRouter.route("/login").post(loginUser)
 
 userRouter.route("/logout").post(verifyJWT, logOutUser)
 
-userRouter.get("/user/:id").get(getUserById)
+userRouter.route("/:id").get(getUserById)
 
 export default userRouter
