@@ -7,6 +7,7 @@ import { asyncHandler } from "../utils/AsyncHandler.js"
 import { createAccessToken, createRefreshToken } from "../utils/tokenService.js";
 import jwt from "jsonwebtoken";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { Preference } from "../models/preference.model.js";
 
 
 // API flow
@@ -115,6 +116,33 @@ export const getCurrentUser = asyncHandler(async (req, res) => {
             ))
 })
 
+
+export const getUserById = asyncHandler(async (req, res) => {
+    const id = req.params;
+
+    const user = await User.findById(id);
+
+    if (!user) {
+        throw new ApiError(404, "User not found")
+    }
+
+    // lean() returns a plain JS object instead of a Mongoose document, improving read performance
+    const preference = await Preference.findOne({ user }).lean();
+
+    if (!preference) {
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(200, null, "No preference found")
+            )
+    }
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, { user, preference }, "User profile fetched successfully")
+        )
+})
 
 // API Flow
 // Client sends request → Reads refresh_token + id → DB verify → bcrypt compare → New access token → Cookie updated ✅
