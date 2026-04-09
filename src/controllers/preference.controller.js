@@ -83,6 +83,7 @@ export const getPreference = asyncHandler(async (req, res) => {
         throw new ApiError(401, "user not loggedIn")
     }
 
+
     // lean() returns a plain JS object instead of a Mongoose document, improving read performance
     const preference = await Preference.findOne({ user }).lean();
 

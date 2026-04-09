@@ -188,6 +188,8 @@ export const getListingsByID = asyncHandler(async (req, res) => {
         )
 })
 
+
+// filter API that also gives the distance between our current location & the property location
 export const filterRooms = asyncHandler(async (req, res) => {
     const {
         minRent,
@@ -220,69 +222,218 @@ export const filterRooms = asyncHandler(async (req, res) => {
         radius
     } = req.body;
 
-    let query = {};
+    let pipeline = [];
 
-    // 💰 Rent
-    if (minRent || maxRent) {
-        query.rent = {};
-        if (minRent) query.rent.$gte = Number(minRent);
-        if (maxRent) query.rent.$lte = Number(maxRent);
-    }
-
-    // 📍 Location
-    if (city) query["location.city"] = city;
-    if (area) query["location.area"] = area;
-
-    // 🚬 Preferences
-    if (smoking !== undefined) query["preferences.smoking"] = smoking;
-    if (drinking !== undefined) query["preferences.drinking"] = drinking;
-    if (sleepSchedule) query["preferences.sleepSchedule"] = sleepSchedule;
-    if (cleanliness) query["preferences.cleanliness"] = Number(cleanliness);
-    if (foodPreference) query["preferences.foodPreference"] = foodPreference;
-    if (pets !== undefined) query["preferences.pets"] = pets;
-    if (preferredGender) query["preferences.preferredGender"] = preferredGender;
-    if (occupation) query["preferences.occupation"] = occupation;
-    if (workStyle) query["preferences.workStyle"] = workStyle;
-
-    // 🏠 Amenities
-    if (roomType && Array.isArray(roomType) && roomType.length > 0) {
-        query["amenities.roomType"] = { $in: roomType };
-    }
-
-    if (AC !== undefined) query["amenities.AC"] = AC;
-    if (refrigerator !== undefined) query["amenities.refrigerator"] = refrigerator;
-    if (parking !== undefined) query["amenities.parking"] = parking;
-
-    if (furnishedLevel) {
-        query["amenities.furnishedLevel"] = furnishedLevel;
-    }
-
-    if (isPersonalRoomAvailable !== undefined) {
-        query["amenities.isPersonalRoomAvailable"] = isPersonalRoomAvailable;
-    }
-
-    // 🌍 Geo
-    if (lat && lng && radius) {
-        query.location = {
-            $near: {
-                $geometry: {
+    // GEO + DISTANCE (MUST BE FIRST)
+    if (
+        lat !== undefined &&
+        lng !== undefined &&
+        radius !== undefined
+    ) {
+        pipeline.push({
+            $geoNear: {
+                near: {
                     type: "Point",
                     coordinates: [parseFloat(lng), parseFloat(lat)],
                 },
-                $maxDistance: radius * 1000
+                distanceField: "distance", // 👈 meters me distance
+                maxDistance: Number(radius) * 1000,
+                spherical: true
             }
-        };
+        });
     }
 
+    // FILTERS
+    let matchQuery = {};
 
-    const rooms = await Room.find(query)
-        .sort({ createdAt: -1 })
-        .populate({
-            path: "postedBy",
-            select: "fullName email profilePicture"
-        });
+    // Rent
+    if (minRent || maxRent) {
+        matchQuery.rent = {};
+        if (minRent) matchQuery.rent.$gte = Number(minRent);
+        if (maxRent) matchQuery.rent.$lte = Number(maxRent);
+    }
+
+    // Location
+    if (city) matchQuery["location.city"] = city;
+    if (area) matchQuery["location.area"] = area;
+
+    // Preferences
+    if (smoking !== undefined) matchQuery["preferences.smoking"] = smoking;
+    if (drinking !== undefined) matchQuery["preferences.drinking"] = drinking;
+    if (sleepSchedule) matchQuery["preferences.sleepSchedule"] = sleepSchedule;
+    if (cleanliness) matchQuery["preferences.cleanliness"] = Number(cleanliness);
+    if (foodPreference) matchQuery["preferences.foodPreference"] = foodPreference;
+    if (pets !== undefined) matchQuery["preferences.pets"] = pets;
+    if (preferredGender) matchQuery["preferences.preferredGender"] = preferredGender;
+    if (occupation) matchQuery["preferences.occupation"] = occupation;
+    if (workStyle) matchQuery["preferences.workStyle"] = workStyle;
+
+    // Amenities
+    if (roomType && Array.isArray(roomType) && roomType.length > 0) {
+        matchQuery["amenities.roomType"] = { $in: roomType };
+    }
+
+    if (AC !== undefined) matchQuery["amenities.AC"] = AC;
+    if (refrigerator !== undefined) matchQuery["amenities.refrigerator"] = refrigerator;
+    if (parking !== undefined) matchQuery["amenities.parking"] = parking;
+
+    if (furnishedLevel) {
+        matchQuery["amenities.furnishedLevel"] = furnishedLevel;
+    }
+
+    if (isPersonalRoomAvailable !== undefined) {
+        matchQuery["amenities.isPersonalRoomAvailable"] = isPersonalRoomAvailable;
+    }
+
+    pipeline.push({ $match: matchQuery });
+
+    // populate equivalent
+    pipeline.push({
+        $lookup: {
+            from: "users",
+            localField: "postedBy",
+            foreignField: "_id",
+            as: "postedBy"
+        }
+    });
+
+    pipeline.push({ $unwind: "$postedBy" });
+
+    // Convert distance to KM
+    pipeline.push({
+        $addFields: {
+            distanceInKm: {
+                $round: [{ $divide: ["$distance", 1000] }, 2]
+            }
+        }
+    });
+
+    // select fields
+    pipeline.push({
+        $project: {
+            rent: 1,
+            description: 1,
+            location: 1,
+            distance: 1,
+            distanceInKm: 1,
+            "postedBy.fullName": 1,
+            "postedBy.email": 1,
+            "postedBy.profilePicture": 1
+        }
+    });
+
+    const rooms = await Room.aggregate(pipeline);
 
     return res.status(200).json(
-        new ApiResponse(200, rooms, "Filtered rooms fetched successfully")
+        new ApiResponse(200, rooms, "Filtered rooms with distance fetched successfully")
     );
 });
+
+
+
+
+
+
+
+
+
+
+// works perfectly , but without the filter location option 
+// export const filterRooms = asyncHandler(async (req, res) => {
+//     const {
+//         minRent,
+//         maxRent,
+//         city,
+//         area,
+
+//         // preferences
+//         smoking,
+//         drinking,
+//         sleepSchedule,
+//         cleanliness,
+//         foodPreference,
+//         pets,
+//         preferredGender,
+//         occupation,
+//         workStyle,
+
+//         // amenities
+//         roomType,
+//         AC,
+//         refrigerator,
+//         parking,
+//         furnishedLevel,
+//         isPersonalRoomAvailable,
+
+//         // geo
+//         lat,
+//         lng,
+//         radius
+//     } = req.body;
+
+//     let query = {};
+
+//     // 💰 Rent
+//     if (minRent || maxRent) {
+//         query.rent = {};
+//         if (minRent) query.rent.$gte = Number(minRent);
+//         if (maxRent) query.rent.$lte = Number(maxRent);
+//     }
+
+//     // 📍 Location
+//     if (city) query["location.city"] = city;
+//     if (area) query["location.area"] = area;
+
+//     // 🚬 Preferences
+//     if (smoking !== undefined) query["preferences.smoking"] = smoking;
+//     if (drinking !== undefined) query["preferences.drinking"] = drinking;
+//     if (sleepSchedule) query["preferences.sleepSchedule"] = sleepSchedule;
+//     if (cleanliness) query["preferences.cleanliness"] = Number(cleanliness);
+//     if (foodPreference) query["preferences.foodPreference"] = foodPreference;
+//     if (pets !== undefined) query["preferences.pets"] = pets;
+//     if (preferredGender) query["preferences.preferredGender"] = preferredGender;
+//     if (occupation) query["preferences.occupation"] = occupation;
+//     if (workStyle) query["preferences.workStyle"] = workStyle;
+
+//     // 🏠 Amenities
+//     if (roomType && Array.isArray(roomType) && roomType.length > 0) {
+//         query["amenities.roomType"] = { $in: roomType };
+//     }
+
+//     if (AC !== undefined) query["amenities.AC"] = AC;
+//     if (refrigerator !== undefined) query["amenities.refrigerator"] = refrigerator;
+//     if (parking !== undefined) query["amenities.parking"] = parking;
+
+//     if (furnishedLevel) {
+//         query["amenities.furnishedLevel"] = furnishedLevel;
+//     }
+
+//     if (isPersonalRoomAvailable !== undefined) {
+//         query["amenities.isPersonalRoomAvailable"] = isPersonalRoomAvailable;
+//     }
+
+//     if (lat && lng && radius) {
+//         query.location = {
+//             $near: {
+//                 $geometry: {
+//                     type: "Point",
+//                     coordinates: [parseFloat(lng), parseFloat(lat)],
+//                 },
+//                 $maxDistance: radius * 1000
+//             }
+//         };
+//     }
+
+
+//     const rooms = await Room.find(query)
+//         .sort({ createdAt: -1 })
+//         .populate({
+//             path: "postedBy",
+//             select: "fullName email profilePicture"
+//         });
+
+//     return res.status(200).json(
+//         new ApiResponse(200, rooms, "Filtered rooms fetched successfully")
+//     );
+// });
+
