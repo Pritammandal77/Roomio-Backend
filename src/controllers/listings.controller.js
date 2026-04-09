@@ -189,6 +189,15 @@ export const getListingsByID = asyncHandler(async (req, res) => {
 })
 
 
+export const getCitiesOfListings = asyncHandler(async (req, res) => {
+    const cities = await Room.distinct("location.city");
+
+    return res.status(200).json(
+        new ApiResponse(200, cities, "Unique cities fetched")
+    );
+});
+
+
 // filter API that also gives the distance between our current location & the property location
 export const filterRooms = asyncHandler(async (req, res) => {
     const {
@@ -316,6 +325,7 @@ export const filterRooms = asyncHandler(async (req, res) => {
             location: 1,
             distance: 1,
             distanceInKm: 1,
+            pictures: 1,
             "postedBy.fullName": 1,
             "postedBy.email": 1,
             "postedBy.profilePicture": 1
