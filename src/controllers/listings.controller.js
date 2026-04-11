@@ -168,6 +168,23 @@ export const getAllListings = asyncHandler(async (req, res) => {
         )
 })
 
+
+export const getCurrUserListings = asyncHandler(async (req, res) => {
+    const user = req.user?._id;
+
+    if(!user){
+        throw new ApiError(401, "user not loggedIn")
+    }
+
+    const listings = await Room.find({postedBy : user})
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, listings, "Listings fetched successfully")
+    )
+})
+
 export const getListingsByID = asyncHandler(async (req, res) => {
     const roomId = req.params.id
 
@@ -326,6 +343,7 @@ export const filterRooms = asyncHandler(async (req, res) => {
             distance: 1,
             distanceInKm: 1,
             pictures: 1,
+            amenities : 1,
             "postedBy.fullName": 1,
             "postedBy.email": 1,
             "postedBy.profilePicture": 1

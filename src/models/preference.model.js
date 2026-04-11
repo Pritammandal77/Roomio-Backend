@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 
- 
+
 const preferenceSchema = new Schema(
     {
         user: {
