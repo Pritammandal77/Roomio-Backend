@@ -32,6 +32,7 @@ import userRouter from "./routes/user.routes.js";
 import preferenceRouter from "./routes/preference.routes.js";
 import roomRouter from "./routes/rooms.routes.js";
 import interestRouter from "./routes/interests.routes.js";
+import otpRouter from "./routes/otp.routes.js";
 
 app.use("/api/user", userRouter)
 
@@ -40,5 +41,7 @@ app.use("/api/preference", preferenceRouter)
 app.use("/api/rooms", roomRouter)
 
 app.use("/api/interests", interestRouter)
+
+app.use("/api/otp", otpRouter)
 
 export default app

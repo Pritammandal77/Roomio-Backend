@@ -9,7 +9,7 @@ const userSchema = new Schema(
             trim: true,
             required: true,
             lowercase: true
-        }, 
+        },
         password: {
             type: String,
             trim: true,
@@ -50,15 +50,17 @@ const userSchema = new Schema(
         },
         mobileNumber: {
             type: String,
-            unique: true
         },
         instagramLink: {
             type: String
         },
         aboutUser: {
             type: String
-        }
-
+        },
+        isVerified: {
+            type: Boolean,
+            default: false,
+        },
     },
     {
         timestamps: true
