@@ -33,6 +33,7 @@ import preferenceRouter from "./routes/preference.routes.js";
 import roomRouter from "./routes/rooms.routes.js";
 import interestRouter from "./routes/interests.routes.js";
 import otpRouter from "./routes/otp.routes.js";
+import { errorHandler } from "./middlewares/error.middleware.js";
 
 app.use("/api/user", userRouter)
 
@@ -43,5 +44,7 @@ app.use("/api/rooms", roomRouter)
 app.use("/api/interests", interestRouter)
 
 app.use("/api/otp", otpRouter)
+
+app.use(errorHandler); // error handler middleware to handle errors 
 
 export default app
