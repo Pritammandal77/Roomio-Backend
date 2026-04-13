@@ -147,6 +147,17 @@ export const getAllListings = asyncHandler(async (req, res) => {
         const user = await User.findById(userId);
         const preference = await Preference.findOne({ user: userId });
 
+        // ❗ अगर preference nahi hai
+        if (!preference) {
+            return res.status(200).json(
+                new ApiResponse(
+                    200,
+                    rooms,
+                    "Listings fetched (no preferences found)"
+                )
+            );
+        }
+
         // Calculate match %
         const matchedRooms = rooms.map((room) => {
             const matchPercentage = calculateMatch(user, preference, room);
@@ -172,17 +183,17 @@ export const getAllListings = asyncHandler(async (req, res) => {
 export const getCurrUserListings = asyncHandler(async (req, res) => {
     const user = req.user?._id;
 
-    if(!user){
+    if (!user) {
         throw new ApiError(401, "user not loggedIn")
     }
 
-    const listings = await Room.find({postedBy : user})
+    const listings = await Room.find({ postedBy: user })
 
     return res
-    .status(200)
-    .json(
-        new ApiResponse(200, listings, "Listings fetched successfully")
-    )
+        .status(200)
+        .json(
+            new ApiResponse(200, listings, "Listings fetched successfully")
+        )
 })
 
 export const getListingsByID = asyncHandler(async (req, res) => {
@@ -343,7 +354,7 @@ export const filterRooms = asyncHandler(async (req, res) => {
             distance: 1,
             distanceInKm: 1,
             pictures: 1,
-            amenities : 1,
+            amenities: 1,
             "postedBy.fullName": 1,
             "postedBy.email": 1,
             "postedBy.profilePicture": 1
