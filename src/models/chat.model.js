@@ -2,23 +2,21 @@ import mongoose, { Mongoose, Schema } from "mongoose";
 
 const chatSchema = new Schema(
     {
-        sender: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User"
+        users: {
+            type: [mongoose.Schema.Types.ObjectId],
+            ref: "User",
+            validate: [arr => arr.length === 2, "Chat must have exactly 2 users"]
         },
-        receiver: {
+        latestMessage: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "User"
+            ref: "Message"
         },
-        message : {
-            type : String,
-            required : true,
-        }
     },
     {
         timestamps: true
     }
 )
 
+chatSchema.index({ users: 1 });
 
 export const Chat = mongoose.model("Chat", chatSchema)
