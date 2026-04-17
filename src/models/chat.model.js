@@ -1,22 +1,21 @@
-import mongoose, { Mongoose, Schema } from "mongoose";
+// Chat Model
+import mongoose, { Schema } from "mongoose";
 
 const chatSchema = new Schema(
     {
-        users: {
-            type: [mongoose.Schema.Types.ObjectId],
+        users: [{
+            type: mongoose.Schema.Types.ObjectId,
             ref: "User",
-            validate: [arr => arr.length === 2, "Chat must have exactly 2 users"]
-        },
+            required: true
+        }],
         latestMessage: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Message"
         },
     },
-    {
-        timestamps: true
-    }
-)
+    { timestamps: true }
+);
 
-chatSchema.index({ users: 1 });
+chatSchema.index({ users: 1 }, { unique: true });
 
-export const Chat = mongoose.model("Chat", chatSchema)
+export const Chat = mongoose.model("Chat", chatSchema);

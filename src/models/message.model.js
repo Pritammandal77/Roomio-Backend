@@ -10,7 +10,7 @@ const messageSchema = new Schema(
         content: {
             type: String,
             trim: true,
-            required : true
+            required: true
         },
         chat: {
             type: mongoose.Schema.Types.ObjectId,
@@ -21,15 +21,16 @@ const messageSchema = new Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "User"
         }],
-        type: {
+        messageType: {
             type: String,
             enum: ["text", "image", "file"],
             default: "text"
         }
     },
-    {
-        timestamps: true
-    }
-)
+    { timestamps: true }
+);
 
-export const Message = mongoose.model("Message", messageSchema)
+messageSchema.index({ chat: 1, createdAt: -1 });
+messageSchema.index({ sender: 1 });
+
+export const Message = mongoose.model("Message", messageSchema);
