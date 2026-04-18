@@ -3,6 +3,7 @@ import { Message } from "../../models/message.model.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { asyncHandler } from "../../utils/AsyncHandler.js";
+import mongoose from "mongoose";
 
 
 export const sendMessage = asyncHandler(async (req, res) => {
@@ -68,3 +69,34 @@ export const fetchMessages = asyncHandler(async (req, res) => {
         )
 })
 
+
+export const markMessagesAsSeen = asyncHandler(async (req, res) => {
+    const { chatId } = req.params
+    const userId = req.user?._id
+
+    if (!chatId) {
+        throw new ApiError(400, "ChatId is required")
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(chatId)) {
+        throw new ApiError(400, "Invalid chatId format")
+    }
+
+    // Update all messages in this chat that:
+    // 1. Were NOT sent by the current user
+    // 2. Haven't been seen by the current user yet
+    await Message.updateMany(
+        {
+            chat: chatId,
+            sender: { $ne: userId },          // not sent by me
+            seenBy: { $nin: [userId] }         // not already seen by me
+        },
+        {
+            $addToSet: { seenBy: userId }      // safely add without duplicates
+        }
+    )
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, null, "Messages marked as seen"))
+})
