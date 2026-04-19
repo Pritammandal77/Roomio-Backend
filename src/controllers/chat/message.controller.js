@@ -41,33 +41,26 @@ export const sendMessage = asyncHandler(async (req, res) => {
 
 })
 
-
 export const fetchMessages = asyncHandler(async (req, res) => {
-    const { chatId } = req.params
-    const { page = 1, limit = 20 } = req.query;
+  const { chatId } = req.params;
+  const { page = 1, limit = 20 } = req.query;
 
-    if (!chatId) {
-        throw new ApiError(400, "could'nt get the chat ID")
-    }
+  if (!chatId) {
+    throw new ApiError(400, "Couldn't get the chat ID");
+  }
 
-    const messages = await Message.find({ chat: chatId })
-        .sort({ createdAt: -1 })
-        .skip((page - 1) * limit)
-        .limit(Number(limit))
-        .populate(
-            "sender", "_id fullName profilePicture"
-        )
+  const messages = await Message.find({ chat: chatId })
+    .sort({ createdAt: -1 }) // latest first
+    .skip((page - 1) * limit)
+    .limit(Number(limit))
+    .populate("sender", "_id fullName profilePicture");
 
-    if (!messages.length) {
-        throw new ApiError(500, "Error while fetching the messages")
-    }
+  const orderedMessages = messages.reverse(); // oldest → newest
 
-    res
-        .status(200)
-        .json(
-            new ApiResponse(200, messages, "messages fetched successfully")
-        )
-})
+  res.status(200).json(
+    new ApiResponse(200, orderedMessages, "Messages fetched successfully")
+  );
+});
 
 
 export const markMessagesAsSeen = asyncHandler(async (req, res) => {
