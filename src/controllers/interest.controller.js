@@ -62,7 +62,7 @@ export const getUserInterests = asyncHandler(async (req, res) => {
             },
             {
                 path: "property",
-                select: "rent description"
+                select: "rent description amenities location"
             }
         ])
 
@@ -79,7 +79,7 @@ export const getUserInterests = asyncHandler(async (req, res) => {
             },
             {
                 path: "property",
-                select: "rent description"
+                select: "rent description amenities location"
             }
         ])
 

@@ -59,7 +59,7 @@ export const upsertPreference = asyncHandler(async (req, res) => {
         { user },
         { $set: updateData },
         {
-            returnDocument: "after", // ✅ FIX (new deprecated)
+            returnDocument: "after", // FIX (new deprecated)
             upsert: true,
             runValidators: true
         }
