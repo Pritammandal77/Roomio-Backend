@@ -70,10 +70,17 @@ export const createNewUser = asyncHandler(async (req, res) => {
 
     const isProd = process.env.NODE_ENV === "production";
 
+    // const cookieOptions = {
+    //     httpOnly: true,
+    //     secure: isProd,
+    //     sameSite: isProd ? "None" : "Lax",
+    //     path: "/",
+    // };
+
     const cookieOptions = {
         httpOnly: true,
-        secure: isProd,
-        sameSite: isProd ? "None" : "Lax",
+        secure: true, // Always true for HTTPS (all live servers)
+        sameSite: isProd ? "none" : "lax", // Use lowercase "none"
         path: "/",
     };
 
@@ -194,12 +201,19 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
 
         const newAccessToken = createAccessToken(user);
 
+        // const cookieOptions = {
+        //     httpOnly: true,
+        //     secure: isProd,
+        //     sameSite: isProd ? 'None' : 'Lax',
+        //     path: '/',
+        //     domain: COOKIE_DOMAIN,
+        // };
+
         const cookieOptions = {
             httpOnly: true,
-            secure: isProd,
-            sameSite: isProd ? 'None' : 'Lax',
-            path: '/',
-            domain: COOKIE_DOMAIN,
+            secure: true, // Always true for HTTPS (all live servers)
+            sameSite: isProd ? "none" : "lax", // Use lowercase "none"
+            path: "/",
         };
 
         res.cookie('access_token', newAccessToken, { ...cookieOptions, maxAge: 2 * 60 * 60 * 1000 });
@@ -248,11 +262,19 @@ export const loginUser = asyncHandler(async (req, res) => {
 
     const isProd = process.env.NODE_ENV === "production";
 
+    // const cookieOptions = {
+    //     httpOnly: true,
+    //     secure: isProd,
+    //     sameSite: isProd ? "None" : "Lax",
+    //     path: "/",
+    // };
+
     const cookieOptions = {
         httpOnly: true,
-        secure: isProd,
-        sameSite: isProd ? "None" : "Lax",
+        secure: true, // Always true for HTTPS (all live servers)
+        sameSite: isProd ? "none" : "lax", // Use lowercase "none"
         path: "/",
+
     };
 
     res.cookie("access_token", accessToken, {
@@ -284,8 +306,8 @@ export const logOutUser = asyncHandler(async (req, res) => {
 
     const cookieOptions = {
         httpOnly: true,
-        secure: isProd,
-        sameSite: isProd ? "None" : "Lax",
+        secure: true, // Match the setting used in login/register
+        sameSite: isProd ? "none" : "lax",
         path: "/",
     };
 
@@ -297,7 +319,6 @@ export const logOutUser = asyncHandler(async (req, res) => {
         .clearCookie("refresh_token", cookieOptions)
         .clearCookie("refresh_token_id", cookieOptions)
         .json(new ApiResponse(200, {}, "User logged Out successfully"))
-
 })
 
 
@@ -402,7 +423,7 @@ export const editProfile = asyncHandler(async (req, res) => {
 
     const profilePictureLocalPath = req.files?.profilePicture?.[0]?.path;
     let profilePictureLiveURL;
-    
+
     if (profilePictureLocalPath) {
         const profilePicture = await uploadOnCloudinary(profilePictureLocalPath);
         if (!profilePicture?.url) {
@@ -427,9 +448,9 @@ export const editProfile = asyncHandler(async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
         userId,
         { $set: updateFields },
-        { 
-            new: true, 
-            runValidators: true 
+        {
+            new: true,
+            runValidators: true
         }
     ).select("-password");
 
