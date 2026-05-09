@@ -1,6 +1,6 @@
 import { Router } from "express"
 import { verifyJWT } from "../middlewares/auth.middleware.js";
-import { filterRooms, getAllListings, getCitiesOfListings, getCurrUserListings, getListingsByID, listRoom } from "../controllers/listings.controller.js";
+import { deleteListing, filterRooms, getAllListings, getCitiesOfListings, getCurrUserListings, getListingsByID, listRoom } from "../controllers/listings.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { optionalVerifyJWT } from "../middlewares/optional.auth.middleware.js";
 
@@ -22,5 +22,7 @@ roomRouter.route("/filter").post(filterRooms)
 roomRouter.route("/cities").get(getCitiesOfListings)
 
 roomRouter.route("/listings/me").get(verifyJWT, getCurrUserListings)
+
+roomRouter.route(`/listing/delete/:id`).delete(verifyJWT, deleteListing)
 
 export default roomRouter

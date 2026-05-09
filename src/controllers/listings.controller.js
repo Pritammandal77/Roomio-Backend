@@ -371,8 +371,24 @@ export const filterRooms = asyncHandler(async (req, res) => {
 
 
 
+export const deleteListing = asyncHandler(async (req, res) => {
+    const { id } = req.params;
 
+    const deleteProp = await Room.findByIdAndDelete(id);
 
+    //if Id is wrong , or property not deleted
+    if (!deleteProp) {
+        return res
+            .status(404)
+            .json(new ApiResponse(404, {}, "Listing not found"));
+    }
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, {}, "Listing Deleted Successfully")
+        );
+});
 
 
 
