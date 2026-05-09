@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { createServer } from "http";                           // Node's http module
-import { Server } from "socket.io";                           // socket.io
+import { Server } from "socket.io";                           
 import connectRoomioDB from './db/index.js';
 import app from './app.js';
 

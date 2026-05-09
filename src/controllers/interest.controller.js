@@ -17,9 +17,9 @@ export const createNewInterest = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Property and lister are required");
     }
 
-    // if (interestedUser.toString() === propertyLister) {
-    //     throw new ApiError(400, "You cannot show interest in your own property");
-    // }
+    if (interestedUser.toString() === propertyLister) {
+        throw new ApiError(400, "You cannot show interest in your own property");
+    }
 
     try {
         const interest = await Interest.create({

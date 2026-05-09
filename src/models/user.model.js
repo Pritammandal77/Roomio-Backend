@@ -50,6 +50,7 @@ const userSchema = new Schema(
         },
         mobileNumber: {
             type: String,
+            default: ""
         },
         instagramLink: {
             type: String

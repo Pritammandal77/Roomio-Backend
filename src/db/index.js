@@ -10,5 +10,4 @@ const connectRoomioDB = async() => {
     }
 }
 
-
 export default connectRoomioDB 

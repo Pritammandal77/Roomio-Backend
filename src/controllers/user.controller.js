@@ -11,18 +11,10 @@ import { Preference } from "../models/preference.model.js";
 import { Otp } from "../models/otp.model.js";
 
 
-// API flow
-// User sends form →
-// Backend →
-// User created →
-// Access token generated →
-// Refresh token stored in DB →
-// Cookies set →
-// User logged in 
 export const createNewUser = asyncHandler(async (req, res) => {
     const { email, password, confirmPassword, fullName, dob, mobileNumber, gender } = req.body;
 
-    if (!email || !password || !confirmPassword || !fullName || !dob || !mobileNumber || !gender) {
+    if (!email || !password || !confirmPassword || !fullName || !dob || !gender) {
         throw new ApiError(400, "All fields are required");
     }
 
@@ -53,7 +45,7 @@ export const createNewUser = asyncHandler(async (req, res) => {
             password,
             fullName,
             dob,
-            mobileNumber,
+            mobileNumber: mobileNumber || "",
             gender,
             profilePicture: profilePictureLiveURL,
             authProvider: "email"
@@ -301,11 +293,63 @@ export const logOutUser = asyncHandler(async (req, res) => {
 })
 
 
+export const editProfile = asyncHandler(async (req, res) => {
+    const { fullName, dob, mobileNumber, gender, instagramLink, aboutUser } = req.body;
+    const userId = req.user?._id;
+
+    const profilePictureLocalPath = req.files?.profilePicture?.[0]?.path;
+    let profilePictureLiveURL;
+    
+    if (profilePictureLocalPath) {
+        const profilePicture = await uploadOnCloudinary(profilePictureLocalPath);
+        if (!profilePicture?.url) {
+            throw new ApiError(400, "Error while uploading profile picture");
+        }
+        profilePictureLiveURL = profilePicture.url;
+    }
+
+    const updateFields = {
+        fullName,
+        dob,
+        mobileNumber,
+        gender,
+        instagramLink,
+        aboutUser,
+    };
+
+    if (profilePictureLiveURL) {
+        updateFields.profilePicture = profilePictureLiveURL;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { $set: updateFields },
+        { 
+            new: true, 
+            runValidators: true 
+        }
+    ).select("-password");
+
+    if (!updatedUser) {
+        throw new ApiError(404, "User not found");
+    }
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(200, updatedUser, "Profile updated successfully")
+        );
+});
+
+
+
+
+
 // With OTP flow : Working conrrectly 
 // export const createNewUser = asyncHandler(async (req, res) => {
 //     const { email, password, confirmPassword, fullName, dob, mobileNumber, gender } = req.body;
 
-//     if (!email || !password || !confirmPassword || !fullName || !dob || !mobileNumber || !gender) {
+//     if (!email || !password || !confirmPassword || !fullName || !dob || !gender) {
 //         throw new ApiError(400, "All fields are required");
 //     }
 
@@ -394,52 +438,3 @@ export const logOutUser = asyncHandler(async (req, res) => {
 //                 "User registered successfully")
 //         )
 // });
-
-
-export const editProfile = asyncHandler(async (req, res) => {
-    const { fullName, dob, mobileNumber, gender, instagramLink, aboutUser } = req.body;
-    const userId = req.user?._id;
-
-    const profilePictureLocalPath = req.files?.profilePicture?.[0]?.path;
-    let profilePictureLiveURL;
-    
-    if (profilePictureLocalPath) {
-        const profilePicture = await uploadOnCloudinary(profilePictureLocalPath);
-        if (!profilePicture?.url) {
-            throw new ApiError(400, "Error while uploading profile picture");
-        }
-        profilePictureLiveURL = profilePicture.url;
-    }
-
-    const updateFields = {
-        fullName,
-        dob,
-        mobileNumber,
-        gender,
-        instagramLink,
-        aboutUser,
-    };
-
-    if (profilePictureLiveURL) {
-        updateFields.profilePicture = profilePictureLiveURL;
-    }
-
-    const updatedUser = await User.findByIdAndUpdate(
-        userId,
-        { $set: updateFields },
-        { 
-            new: true, 
-            runValidators: true 
-        }
-    ).select("-password");
-
-    if (!updatedUser) {
-        throw new ApiError(404, "User not found");
-    }
-
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(200, updatedUser, "Profile updated successfully")
-        );
-});

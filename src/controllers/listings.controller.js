@@ -412,18 +412,18 @@ export const filterRooms = asyncHandler(async (req, res) => {
 
 //     let query = {};
 
-//     // 💰 Rent
+//     // Rent
 //     if (minRent || maxRent) {
 //         query.rent = {};
 //         if (minRent) query.rent.$gte = Number(minRent);
 //         if (maxRent) query.rent.$lte = Number(maxRent);
 //     }
 
-//     // 📍 Location
+//     // Location
 //     if (city) query["location.city"] = city;
 //     if (area) query["location.area"] = area;
 
-//     // 🚬 Preferences
+//     // Preferences
 //     if (smoking !== undefined) query["preferences.smoking"] = smoking;
 //     if (drinking !== undefined) query["preferences.drinking"] = drinking;
 //     if (sleepSchedule) query["preferences.sleepSchedule"] = sleepSchedule;
@@ -434,7 +434,7 @@ export const filterRooms = asyncHandler(async (req, res) => {
 //     if (occupation) query["preferences.occupation"] = occupation;
 //     if (workStyle) query["preferences.workStyle"] = workStyle;
 
-//     // 🏠 Amenities
+//     // Amenities
 //     if (roomType && Array.isArray(roomType) && roomType.length > 0) {
 //         query["amenities.roomType"] = { $in: roomType };
 //     }
@@ -462,7 +462,6 @@ export const filterRooms = asyncHandler(async (req, res) => {
 //             }
 //         };
 //     }
-
 
 //     const rooms = await Room.find(query)
 //         .sort({ createdAt: -1 })
