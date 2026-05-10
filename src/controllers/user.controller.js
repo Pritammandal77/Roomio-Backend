@@ -357,13 +357,27 @@ export const googleAuthCallback = asyncHandler(async (req, res) => {
         userAgent: req.headers["user-agent"],
     });
 
+    // const isProd = process.env.NODE_ENV === "production";
+
+    // const cookieOptions = {
+    //     httpOnly: true,
+    //     secure: isProd, // Must be true on Live (HTTPS)
+    //     sameSite: isProd ? "None" : "Lax", // "None" allows cross-domain cookies
+    //     path: "/",
+    // };
+
+
+
     const isProd = process.env.NODE_ENV === "production";
 
     const cookieOptions = {
         httpOnly: true,
-        secure: isProd, // Must be true on Live (HTTPS)
-        sameSite: isProd ? "None" : "Lax", // "None" allows cross-domain cookies
+        secure: true, // Production par hamesha true hona chahiye
+        sameSite: isProd ? "None" : "Lax",
         path: "/",
+        // Agar frontend aur backend subdomains hain (e.g. app.roomioo.com aur api.roomioo.com)
+        // toh domain property set karein, warna ise hata dein.
+        domain: isProd ? process.env.COOKIE_DOMAIN : undefined,
     };
 
     // Set Cookies (Same as your loginUser logic)
