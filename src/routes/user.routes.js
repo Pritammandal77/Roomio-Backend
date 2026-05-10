@@ -41,15 +41,13 @@ userRouter.route("/edit-profile").put(
 
 
 // for OAuth
-
-// Route to start the Google flow
 userRouter.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
 // Google callback route
 userRouter.get(
     "/auth/google/callback",
     passport.authenticate("google", { session: false, failureRedirect: "/login" }),
-    googleAuthCallback // This controller handles your JWTs and cookies
+    googleAuthCallback
 );
 
 export default userRouter
