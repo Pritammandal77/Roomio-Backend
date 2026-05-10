@@ -13,6 +13,7 @@ const userSchema = new Schema(
         password: {
             type: String,
             trim: true,
+            required: function () { return this.authProvider === 'email'; }
         },
         googleId: {
             type: String,
@@ -36,14 +37,16 @@ const userSchema = new Schema(
         },
         dob: {
             type: Date,
-            required: true,
+            required: function () { return this.authProvider === 'email'; },
             validate: {
                 validator: function (value) {
+                    if (!value) return true; // Skip validation if not provided (for Google auth)
                     return value < new Date();
                 },
                 message: "DOB must be in the past"
             }
         },
+
         gender: {
             type: String,
             enum: ["male", "female", "others"],
