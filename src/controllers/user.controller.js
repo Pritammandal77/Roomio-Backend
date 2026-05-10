@@ -299,7 +299,7 @@ export const editProfile = asyncHandler(async (req, res) => {
 
     const profilePictureLocalPath = req.files?.profilePicture?.[0]?.path;
     let profilePictureLiveURL;
-    
+
     if (profilePictureLocalPath) {
         const profilePicture = await uploadOnCloudinary(profilePictureLocalPath);
         if (!profilePicture?.url) {
@@ -324,9 +324,9 @@ export const editProfile = asyncHandler(async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
         userId,
         { $set: updateFields },
-        { 
-            new: true, 
-            runValidators: true 
+        {
+            new: true,
+            runValidators: true
         }
     ).select("-password");
 
@@ -361,8 +361,8 @@ export const googleAuthCallback = asyncHandler(async (req, res) => {
 
     const cookieOptions = {
         httpOnly: true,
-        secure: isProd,
-        sameSite: isProd ? "None" : "Lax",
+        secure: isProd, // Must be true on Live (HTTPS)
+        sameSite: isProd ? "None" : "Lax", // "None" allows cross-domain cookies
         path: "/",
     };
 

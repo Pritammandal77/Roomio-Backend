@@ -5,6 +5,7 @@ import passport from "passport";
 import "./config/passport.js"; // Import your config
 
 const app = express();
+app.set("trust proxy", 1);
 
 app.use(cors({
     origin: process.env.CORS_ORIGIN,
