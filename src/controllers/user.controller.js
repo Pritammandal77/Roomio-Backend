@@ -342,6 +342,50 @@ export const editProfile = asyncHandler(async (req, res) => {
 });
 
 
+export const googleAuthCallback = asyncHandler(async (req, res) => {
+    const user = req.user;
+
+    if (!user) {
+        throw new ApiError(401, "Google authentication failed");
+    }
+
+    // Reuse your existing token services
+    const accessToken = createAccessToken(user);
+    const { token: refreshToken, id: refreshId } = await createRefreshToken({
+        userId: user._id,
+        ip: req.ip,
+        userAgent: req.headers["user-agent"],
+    });
+
+    const isProd = process.env.NODE_ENV === "production";
+
+    const cookieOptions = {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? "None" : "Lax",
+        path: "/",
+    };
+
+    // Set Cookies (Same as your loginUser logic)
+    res.cookie("access_token", accessToken, {
+        ...cookieOptions,
+        maxAge: 2 * 60 * 60 * 1000,
+    });
+
+    res.cookie("refresh_token", refreshToken, {
+        ...cookieOptions,
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
+    res.cookie("refresh_token_id", refreshId.toString(), {
+        ...cookieOptions,
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
+    // Redirect to your Next.js frontend dashboard
+    const frontendURL = process.env.FRONTEND_URL || "http://localhost:3000";
+    res.redirect(`${frontendURL}`);
+});
 
 
 

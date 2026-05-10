@@ -1,6 +1,8 @@
 import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser";
+import passport from "passport";
+import "./config/passport.js"; // Import your config
 
 const app = express();
 
