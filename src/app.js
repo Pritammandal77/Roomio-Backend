@@ -7,10 +7,36 @@ import "./config/passport.js"; // Import your config
 const app = express();
 app.set("trust proxy", 1);
 
+
+
+
+
+// Read the string from Render and split it by the comma into an array
+const allowedOrigins = process.env.CORS_ORIGIN 
+    ? process.env.CORS_ORIGIN.split(',') 
+    : ["http://localhost:3000", "http://localhost:5173"]; // Fallbacks for local development
+
 app.use(cors({
-    origin: process.env.CORS_ORIGIN,
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like Postman, mobile testing, or server-to-server requests)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Blocked by CORS policy'));
+        }
+    },
     credentials: true
-}))
+}));
+
+
+
+
+// app.use(cors({
+//     origin: process.env.CORS_ORIGIN,
+//     credentials: true
+// }))
 
 app.use(express.json({
     limit: "16kb"
