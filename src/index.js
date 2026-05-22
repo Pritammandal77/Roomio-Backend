@@ -17,7 +17,7 @@ const io = new Server(httpServer, {
 
 // Socket.io Logic 
 
-const onlineUsers = new Map();                               // userId → socketId
+const onlineUsers = new Map();                               // userId -> socketId
 
 io.on("connection", (socket) => {
     console.log("Socket connected:", socket.id);
@@ -79,7 +79,6 @@ io.on("connection", (socket) => {
 });
 
 // Start Server
-
 connectRoomioDB()
     .then(() => {
         httpServer.listen(process.env.PORT || 8000, () => {   // httpServer not app.listen

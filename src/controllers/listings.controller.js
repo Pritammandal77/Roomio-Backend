@@ -147,7 +147,7 @@ export const getAllListings = asyncHandler(async (req, res) => {
         const user = await User.findById(userId);
         const preference = await Preference.findOne({ user: userId });
 
-        // ❗ अगर preference nahi hai
+        // अगर preference nahi hai
         if (!preference) {
             return res.status(200).json(
                 new ApiResponse(

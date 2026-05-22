@@ -2,7 +2,7 @@ import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser";
 import passport from "passport";
-import "./config/passport.js"; // Import your config
+import "./config/passport.js"; // Import passport config
 
 const app = express();
 app.set("trust proxy", 1);
@@ -25,6 +25,9 @@ app.use(express.static("public"))
 
 app.use(cookieParser())
 
+app.get('/ping', (req, res) => {
+    res.status(200).send('Server is alive');
+});
 
 import userRouter from "./routes/user.routes.js";
 import preferenceRouter from "./routes/preference.routes.js";

@@ -5,7 +5,7 @@ const chatSchema = new Schema(
         users: [{
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
-            required: true
+            // required: true
         }],
         latestMessage: {
             type: mongoose.Schema.Types.ObjectId,
