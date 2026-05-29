@@ -1,8 +1,8 @@
-import { AiReview } from '../models/AiReview.js';
-import { User } from '../models/User.js';
-import { Listing } from '../models/Listing.js';
 import { Preference } from '../models/preference.model.js';
-import { generateCompatibilityReview } from '../services/geminiService.js';
+import { AiReview } from '../models/aireview.model.js';
+import { User } from '../models/user.model.js';
+import { Room } from '../models/room.model.js';
+import { generateCompatibilityReview } from '../services/gemini.service.js';
 
 export const getOrUpdateAiReview = async (req, res) => {
   try {
@@ -11,11 +11,19 @@ export const getOrUpdateAiReview = async (req, res) => {
 
     // 1. Fetch latest data across all tracks
     const user = await User.findById(userId);
-    const listing = await Listing.findById(listingId);
-    const preference = await Preference.findOne({ user: userId }); // Matches your schema's 'user' field
+    const listing = await Room.findById(listingId);
+    const preference = await Preference.findOne({ user: userId }); 
     
     if (!user || !listing) {
       return res.status(404).json({ message: "User or Listing not found" });
+    }
+
+    // NEW GUARDRAIL: If user hasn't set up their preferences yet, return early
+    if (!preference) {
+      return res.status(200).json({
+        hasPreferences: false,
+        message: "Add preferences to get an AI compatibility review."
+      });
     }
 
     // 2. Look for an existing cached review
@@ -28,25 +36,16 @@ export const getOrUpdateAiReview = async (req, res) => {
     const hasListingUpdated = cachedReview && 
       new Date(listing.updatedAt).getTime() > new Date(cachedReview.lastListingUpdatedAt).getTime();
 
-    const preferenceUpdatedAt = preference ? new Date(preference.updatedAt).getTime() : 0;
+    // No need to fall back to 0 here anymore because we are guaranteed to have a preference object
     const hasUserPreferenceUpdated = cachedReview && 
-      preferenceUpdatedAt > new Date(cachedReview.lastUserPreferenceUpdatedAt).getTime();
+      new Date(preference.updatedAt).getTime() > new Date(cachedReview.lastUserPreferenceUpdatedAt).getTime();
 
     // 4. Run the conditional checkpoint
     if (!cachedReview || hasUserUpdated || hasListingUpdated || hasUserPreferenceUpdated) {
-      console.log(!cachedReview ? "No cached review. Generating fresh..." : "Data changed. Regenerating...");
+      console.log(!cachedReview ? "👉 No cached review. Generating fresh..." : "🔄 Data changed. Regenerating...");
 
-      // Default fallback preferences if the user hasn't filled out their preference profile yet
-      const fallbackPreference = preference || {
-        budget: { min: 0, max: 999999 },
-        occupation: "Not specified",
-        personality: "ambivert",
-        workStyle: "Hybrid",
-        lifestyle: { smoking: false, drinking: false, sleepSchedule: "late", cleanliness: 3, foodPreference: "veg", pets: false }
-      };
-
-      // Call Gemini Service with all 3 pieces of data
-      const aiResponse = await generateCompatibilityReview(user, fallbackPreference, listing);
+      // Call Gemini Service with all 3 pieces of actual user data
+      const aiResponse = await generateCompatibilityReview(user, preference, listing);
 
       // Upsert into your AiReview model layout
       cachedReview = await AiReview.findOneAndUpdate(
@@ -56,7 +55,7 @@ export const getOrUpdateAiReview = async (req, res) => {
           compatibilityScore: aiResponse.score,
           lastUserUpdatedAt: user.updatedAt,
           lastListingUpdatedAt: listing.updatedAt,
-          lastUserPreferenceUpdatedAt: preference ? preference.updatedAt : new Date()
+          lastUserPreferenceUpdatedAt: preference.updatedAt
         },
         { new: true, upsert: true }
       );
@@ -64,8 +63,9 @@ export const getOrUpdateAiReview = async (req, res) => {
       console.log("Serving review directly from MongoDB Cache");
     }
 
-    // 5. Respond back to Roomio frontend
+    // 5. Respond back to Roomio frontend (Including the flag for cleaner client parsing)
     return res.status(200).json({
+      hasPreferences: true,
       score: cachedReview.compatibilityScore,
       review: cachedReview.reviewText,
       cached: !hasUserUpdated && !hasListingUpdated && !hasUserPreferenceUpdated && !!cachedReview

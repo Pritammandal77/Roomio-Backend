@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getOrUpdateAiReview } from "../controllers/gemini.controller.js"; // 1. Added .js extension
+import { getOrUpdateAiReview } from "../controllers/ai.controller.js"; // 1. Added .js extension
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const aiservicerouter = Router();

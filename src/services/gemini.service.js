@@ -1,11 +1,9 @@
-import { GoogleGenAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 export const generateCompatibilityReview = async (user, preference, listing) => {
   try {
-    const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
     const systemInstruction = `
       You are an expert AI roommate and housing compatibility assistant for the platform Roomio. 
       Your job is to analyze a user's profile and living preferences against a room listing and provide an honest compatibility review.
@@ -16,6 +14,12 @@ export const generateCompatibilityReview = async (user, preference, listing) => 
         "summary": "A 2-3 sentence summary highlighting why this is or isn't a great match based on their profile and preferences."
       }
     `;
+
+    // 🌟 CRITICAL FIX: systemInstruction goes HERE as a top-level property!
+    const model = genAI.getGenerativeModel({ 
+      model: 'gemini-2.5-flash',
+      systemInstruction: systemInstruction 
+    });
 
     const prompt = `
       --- USER PROFILE ---
@@ -44,15 +48,16 @@ export const generateCompatibilityReview = async (user, preference, listing) => 
     `;
 
     const result = await model.generateContent({
-      contents: prompt,
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      // 🌟 Clean config with ONLY allowed fields
       generationConfig: {
-        systemInstruction: systemInstruction,
         responseMimeType: "application/json",
         temperature: 0.2,
       }
     });
 
-    return JSON.parse(result.response.text());
+    const responseText = result.response.text();
+    return JSON.parse(responseText);
 
   } catch (error) {
     console.error("Gemini Generation Error:", error);
