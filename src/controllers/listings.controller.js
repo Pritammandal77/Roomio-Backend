@@ -84,7 +84,6 @@ export const listRoom = asyncHandler(async (req, res) => {
 
         const uploaded = await uploadOnCloudinary(pic.path);
 
-
         if (uploaded && uploaded.public_id) {
             pictures.push({
                 url: uploaded.secure_url || uploaded.url,
