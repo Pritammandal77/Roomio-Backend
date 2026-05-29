@@ -36,6 +36,7 @@ import interestRouter from "./routes/interests.routes.js";
 import otpRouter from "./routes/otp.routes.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import chatRouter from "./routes/chat.routes.js";
+import aiservicerouter from "./routes/aiservice.routes.js";
 
 app.use("/api/user", userRouter)
 
@@ -48,6 +49,8 @@ app.use("/api/interests", interestRouter)
 app.use("/api/otp", otpRouter)
 
 app.use("/api/chats", chatRouter)
+
+app.use("/api/ai", aiservicerouter)
 
 app.use(errorHandler); // error handler middleware to handle errors 
 

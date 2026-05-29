@@ -3,7 +3,7 @@ import { createOrFetchChat, fetchChats } from "../controllers/chat/chat.controll
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { fetchMessages, markMessagesAsSeen, sendMessage } from "../controllers/chat/message.controller.js";
 
-export const chatRouter = Router()
+const chatRouter = Router()
 
 chatRouter.route("/new").post(verifyJWT, createOrFetchChat)
 chatRouter.route("/all").get(verifyJWT, fetchChats)
