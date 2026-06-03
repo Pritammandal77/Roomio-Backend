@@ -62,7 +62,7 @@ Roomio-Backend/
 ### Prerequisites
 
 - Node.js
-- MongoDB (local or Atlas)
+- MongoDB Atlas
 - Cloudinary account
 - Google Cloud Console project (for OAuth)
 - Resend account (for emails)
