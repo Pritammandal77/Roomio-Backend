@@ -15,7 +15,7 @@ export const generateCompatibilityReview = async (user, preference, listing) => 
       }
     `;
 
-    // 🌟 CRITICAL FIX: systemInstruction goes HERE as a top-level property!
+    // systemInstruction goes HERE as a top-level property!
     const model = genAI.getGenerativeModel({ 
       model: 'gemini-2.5-flash',
       systemInstruction: systemInstruction 
@@ -49,7 +49,7 @@ export const generateCompatibilityReview = async (user, preference, listing) => 
 
     const result = await model.generateContent({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      // 🌟 Clean config with ONLY allowed fields
+      // Clean config with ONLY allowed fields
       generationConfig: {
         responseMimeType: "application/json",
         temperature: 0.2,

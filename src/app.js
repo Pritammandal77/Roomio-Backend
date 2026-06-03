@@ -2,7 +2,7 @@ import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser";
 import passport from "passport";
-import "./config/passport.js"; // Import passport config
+import "./config/passport.js";
 
 const app = express();
 app.set("trust proxy", 1);

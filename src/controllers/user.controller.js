@@ -5,7 +5,6 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/AsyncHandler.js"
 import { createAccessToken, createRefreshToken } from "../utils/tokenService.js";
-import jwt from "jsonwebtoken";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { Preference } from "../models/preference.model.js";
 import { Otp } from "../models/otp.model.js";
@@ -138,7 +137,7 @@ export const getUserById = asyncHandler(async (req, res) => {
 })
 
 // API Flow
-// Client sends request → Reads refresh_token + id → DB verify → bcrypt compare → New access token → Cookie updated ✅
+// Client sends request -> Reads refresh_token + id-> DB verify -> bcrypt compare -> New access token -> Cookie updated
 export const refreshAccessToken = asyncHandler(async (req, res) => {
     try {
         const refreshPlain = req.cookies['refresh_token'];
@@ -223,7 +222,7 @@ export const loginUser = asyncHandler(async (req, res) => {
         throw new ApiError(401, "Invalid email or password")
     }
 
-    //we are using the isPasswordCorrect method define in the user.model.js
+    // using the isPasswordCorrect method define in the user.model.js
     const isPasswordValid = await user.isPasswordCorrect(password)
 
     if (!isPasswordValid) {
@@ -403,7 +402,7 @@ export const googleAuthCallback = asyncHandler(async (req, res) => {
 
 
 
-// With OTP flow : Working conrrectly 
+// With OTP flow
 export const createNewUser = asyncHandler(async (req, res) => {
     const { email, password, confirmPassword, fullName, dob, mobileNumber, gender } = req.body;
 
