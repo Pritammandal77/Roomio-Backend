@@ -41,7 +41,6 @@ export const sendOtp = asyncHandler(async (req, res) => {
 
 export const verifyOtp = asyncHandler(async (req, res) => {
     const { email, otp } = req.body;
-    console.log(email, otp)
     const record = await Otp.findOne({ email });
 
     if (!record) throw new ApiError(400, "Invalid OTP");

@@ -18,7 +18,7 @@ export const getOrUpdateAiReview = async (req, res) => {
       return res.status(404).json({ message: "User or Listing not found" });
     }
 
-    // NEW GUARDRAIL: If user hasn't set up their preferences yet, return early
+    // if user hasn't set up their preferences yet, return 
     if (!preference) {
       return res.status(200).json({
         hasPreferences: false,
@@ -42,12 +42,12 @@ export const getOrUpdateAiReview = async (req, res) => {
 
     // 4. Run the conditional checkpoint
     if (!cachedReview || hasUserUpdated || hasListingUpdated || hasUserPreferenceUpdated) {
-      console.log(!cachedReview ? "👉 No cached review. Generating fresh..." : "🔄 Data changed. Regenerating...");
+      console.log(!cachedReview ? "No cached review. Generating fresh..." : "Data changed. Regenerating...");
 
-      // Call Gemini Service with all 3 pieces of actual user data
+      // Calling Gemini Service with all 3 pieces of actual user data
       const aiResponse = await generateCompatibilityReview(user, preference, listing);
 
-      // Upsert into your AiReview model layout
+      // Upsert into the AiReview model layout
       cachedReview = await AiReview.findOneAndUpdate(
         { userId, listingId },
         {
@@ -63,7 +63,7 @@ export const getOrUpdateAiReview = async (req, res) => {
       console.log("Serving review directly from MongoDB Cache");
     }
 
-    // 5. Respond back to Roomio frontend (Including the flag for cleaner client parsing)
+    // 5. Respond back to frontend (Including the flag for cleaner client parsing)
     return res.status(200).json({
       hasPreferences: true,
       score: cachedReview.compatibilityScore,

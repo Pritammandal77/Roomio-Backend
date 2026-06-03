@@ -91,7 +91,6 @@ export const getUserInterests = asyncHandler(async (req, res) => {
 })
 
 
-
 export const updateStatus = asyncHandler(async (req, res) => {
     const { updatedStatus, interestId } = req.body;
 

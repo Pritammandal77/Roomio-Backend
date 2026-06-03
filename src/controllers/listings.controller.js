@@ -53,7 +53,6 @@ export const listRoom = asyncHandler(async (req, res) => {
         throw new ApiError(400, "All fields are required");
     }
 
-
     let coordinatesParsed;
     try {
         coordinatesParsed = JSON.parse(coordinates);
@@ -145,8 +144,9 @@ export const getAllListings = asyncHandler(async (req, res) => {
     if (userId) {
         const user = await User.findById(userId);
         const preference = await Preference.findOne({ user: userId });
-
-        // अगर preference nahi hai
+        console.log("user preference", preference)
+        
+        // if preference not added
         if (!preference) {
             return res.status(200).json(
                 new ApiResponse(
@@ -260,7 +260,7 @@ export const filterRooms = asyncHandler(async (req, res) => {
 
     let pipeline = [];
 
-    // GEO + DISTANCE (MUST BE FIRST)
+    // GEO + DISTANCE 
     if (
         lat !== undefined &&
         lng !== undefined &&
@@ -272,7 +272,7 @@ export const filterRooms = asyncHandler(async (req, res) => {
                     type: "Point",
                     coordinates: [parseFloat(lng), parseFloat(lat)],
                 },
-                distanceField: "distance", // 👈 meters me distance
+                distanceField: "distance", // distance in meters
                 maxDistance: Number(radius) * 1000,
                 spherical: true
             }
@@ -388,6 +388,19 @@ export const deleteListing = asyncHandler(async (req, res) => {
             new ApiResponse(200, {}, "Listing Deleted Successfully")
         );
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
